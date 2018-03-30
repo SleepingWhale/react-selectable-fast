@@ -273,7 +273,7 @@ class SelectableGroup extends Component {
     })
   }
 
-  selectItems = (selectboxBounds, { click } = {}) => {
+  selectItems = (selectboxBounds, { click, isMouseUpOnClickElement } = {}) => {
     const { tolerance, enableDeselect, mixedDeselect } = this.props
     selectboxBounds.top += this.scrollContainer.scrollTop
     selectboxBounds.left += this.scrollContainer.scrollLeft
@@ -286,12 +286,13 @@ class SelectableGroup extends Component {
         click,
         enableDeselect,
         mixedDeselect,
+        isMouseUpOnClickElement,
       )
     }
   }
 
-  processItem(item, tolerance, selectboxBounds, click, enableDeselect, mixedDeselect) {
-    if (this.inIgnoreList(item.node)) {
+  processItem(item, tolerance, selectboxBounds, click, enableDeselect, mixedDeselect, isMouseUpOnClickElement) {
+    if (!isMouseUpOnClickElement && this.inIgnoreList(item.node)) {
       return null
     }
     const isCollided = doObjectsCollide(selectboxBounds, item.bounds, tolerance, this.props.delta)
@@ -377,6 +378,27 @@ class SelectableGroup extends Component {
     this.updateWhiteListNodes()
     if (this.inIgnoreList(e.target)) {
       this.mouseDownStarted = false
+      const isMouseDownOnClickElement =
+        [...(e.target.classList || [])].indexOf(this.props.clickClassName) > -1
+
+      if (isMouseDownOnClickElement) {
+        this.mouseUpStarted = false
+        e = this.desktopEventCoords(e)
+
+        this.updateRootBounds()
+        this.updateRegistry()
+
+        this.mouseDownData = {
+          boxLeft: e.pageX,
+          boxTop: e.pageY,
+          scrollTop: this.scrollContainer.scrollTop,
+          scrollLeft: this.scrollContainer.scrollLeft,
+          target: e.target,
+        }
+        document.addEventListener('mouseup', this.mouseUp)
+        document.addEventListener('touchend', this.mouseUp)
+      }
+
       return
     }
 
@@ -485,7 +507,7 @@ class SelectableGroup extends Component {
       isMouseUpOnClickElement ||
       this.ctrlPressed
     ) {
-      this.selectItems({ top, left, offsetWidth: 0, offsetHeight: 0 }, { click: true })
+      this.selectItems({ top, left, offsetWidth: 0, offsetHeight: 0 }, { click: true, isMouseUpOnClickElement })
       this.props.onSelectionFinish([...this.selectedItems], this.clickedItem)
 
       if (e.which === 1) {
