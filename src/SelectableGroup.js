@@ -291,7 +291,15 @@ class SelectableGroup extends Component {
     }
   }
 
-  processItem(item, tolerance, selectboxBounds, click, enableDeselect, mixedDeselect, isMouseUpOnClickElement) {
+  processItem(
+    item,
+    tolerance,
+    selectboxBounds,
+    click,
+    enableDeselect,
+    mixedDeselect,
+    isMouseUpOnClickElement,
+  ) {
     if (!isMouseUpOnClickElement && this.inIgnoreList(item.node)) {
       return null
     }
@@ -507,7 +515,10 @@ class SelectableGroup extends Component {
       isMouseUpOnClickElement ||
       this.ctrlPressed
     ) {
-      this.selectItems({ top, left, offsetWidth: 0, offsetHeight: 0 }, { click: true, isMouseUpOnClickElement })
+      this.selectItems(
+        { top, left, offsetWidth: 0, offsetHeight: 0 },
+        { click: true, isMouseUpOnClickElement },
+      )
       this.props.onSelectionFinish([...this.selectedItems], this.clickedItem)
 
       if (e.which === 1) {
